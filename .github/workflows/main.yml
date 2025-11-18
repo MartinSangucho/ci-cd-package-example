@@ -1,0 +1,46 @@
+name: CI/CD Build Package Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 1. Obtener el Código Fuente
+      uses: actions/checkout@v4
+
+    - name: 2. Configurar el Entorno Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 3. Instalar Dependencias del Proyecto
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+
+    # FASE DE INTEGRACIÓN CONTINUA (CI)
+
+    - name: 4. Ejecutar Pruebas Unitarias
+      run: |
+        pytest
+        
+    # FASE DE ENTREGA CONTINUA (CD)
+
+    - name: 5. Construir el Paquete (Package)
+      run: |
+        # Uso 'sdist' y 'bdist_wheel' para generar el código fuente comprimido y el binario.
+        python setup.py sdist bdist_wheel
+
+    - name: 6. Subir el Paquete como Artefacto Final
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-dist
+        # El paquete se guarda en la carpeta 'dist/'
+        path: dist/
+        retention-days: 5
