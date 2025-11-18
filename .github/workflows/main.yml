@@ -2,7 +2,6 @@ name: CI/CD Build Package Pipeline
 
 on:
   push:
-    # Usamos "main" ya que es la rama estándar, pero asegúrate de hacer push a la que estés usando actualmente (main o master).
     branches: [ "main" ] 
   pull_request:
     branches: [ "main" ]
@@ -19,33 +18,30 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: 3. Instalar Dependencias del Proyecto
+    - name: 3. Instalar Dependencias y el Paquete (CRUCIAL)
       run: |
         python -m pip install --upgrade pip
-        # Instalar dependencias para pytest y empaquetado
+        # Instalar dependencias para pruebas y empaquetado
         pip install -r requirements.txt
+        # Instalar el proyecto como paquete local para que Pytest pueda importarlo
+        pip install . 
 
     # FASE DE INTEGRACIÓN CONTINUA (CI)
 
-    - name: 4. Ejecutar Pruebas Unitarias (Corregido el ImportError)
+    - name: 4. Ejecutar Pruebas Unitarias
       run: |
-        # Añadir la carpeta actual al PYTHONPATH para que pytest pueda encontrar app.py
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
         pytest
         
     # FASE DE ENTREGA CONTINUA (CD)
 
     - name: 5. Construir el Paquete (Package)
       run: |
-        # Instalar el proyecto para que setup.py pueda crear los archivos de distribución
-        pip install . 
-        # Genera los archivos de distribución (sdist y wheel)
+        # Ya está instalado, solo generamos los archivos de distribución
         python setup.py sdist bdist_wheel
 
     - name: 6. Subir el Paquete como Artefacto Final
       uses: actions/upload-artifact@v4
       with:
         name: python-package-dist
-        # El paquete se guarda en la carpeta 'dist/'
         path: dist/
         retention-days: 5
