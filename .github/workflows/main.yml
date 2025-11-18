@@ -2,7 +2,8 @@ name: CI/CD Build Package Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    # Si subiste a 'master' en lugar de 'main', es mejor cambiar esta línea a 'master'
+    branches: [ "main" ] 
   pull_request:
     branches: [ "main" ]
 
@@ -21,8 +22,9 @@ jobs:
     - name: 3. Instalar Dependencias del Proyecto
       run: |
         python -m pip install --upgrade pip
+        # Instalar dependencias para pytest, setuptools, wheel, etc.
         pip install -r requirements.txt
-        pip install -e .
+        # Se ha eliminado 'pip install -e .' para evitar conflictos de importación.
 
     # FASE DE INTEGRACIÓN CONTINUA (CI)
 
@@ -34,6 +36,8 @@ jobs:
 
     - name: 5. Construir el Paquete (Package)
       run: |
+        # Necesitamos la instalación normal para que setup.py funcione correctamente
+        pip install . 
         # Uso 'sdist' y 'bdist_wheel' para generar el código fuente comprimido y el binario.
         python setup.py sdist bdist_wheel
 
